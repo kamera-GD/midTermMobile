@@ -3,20 +3,6 @@
 > **Đồ án giữa kỳ môn Phát triển ứng dụng di động**  
 > **Trạng thái:** Đã hoàn thành toàn bộ mã nguồn, bộ kiểm thử tự động (TC01–TC09 PASS 100%), gói cài đặt APK và trọn bộ hồ sơ Deliverables D1–D8.
 
-## 0. Danh mục Hồ sơ Deliverables (Câu 2 & Câu 3)
-
-| Mã Deliverable | Tên tài liệu / Minh chứng | Đường dẫn tệp trong dự án | Trạng thái |
-|---|---|---|---|
-| **Câu 2** | **Script hướng dẫn minh họa sản phẩm (7 Yêu cầu & TC01–TC09)** | [`SCRIPT_HUONG_DAN_MINH_HOA_CA_U_2.md`](SCRIPT_HUONG_DAN_MINH_HOA_CA_U_2.md) | ✅ Hoàn thành |
-| **D1** | Báo cáo nghiên cứu lý thuyết (10 chủ đề + Tài liệu tham khảo) | [`docs/D1_Bao_Cao_Nghien_Cuu_Ly_Thuyet.md`](docs/D1_Bao_Cao_Nghien_Cuu_Ly_Thuyet.md) | ✅ Hoàn thành |
-| **D2** | Tài liệu phân tích và thiết kế (FR/NFR, Use Case, Mermaid Diagrams, DB) | [`docs/D2_Tai_Lieu_Phan_Tich_Va_Thiet_Ke.md`](docs/D2_Tai_Lieu_Phan_Tich_Va_Thiet_Ke.md) | ✅ Hoàn thành |
-| **D3** | Mã nguồn ứng dụng Android & Hướng dẫn build/chạy | [`docs/D3_Ma_Nguon_Ung_Dung_Android.md`](docs/D3_Ma_Nguon_Ung_Dung_Android.md) & [`app/src/main`](app/src/main) | ✅ Hoàn thành |
-| **D4** | Mã nguồn máy chủ, Tài liệu REST API, Dữ liệu mẫu & Triển khai | [`docs/D4_Ma_Nguon_May_Chu_Va_API.md`](docs/D4_Ma_Nguon_May_Chu_Va_API.md) & [`backend/`](backend) | ✅ Hoàn thành |
-| **D5** | Mô-đun đồng bộ hai chiều và Xử lý xung đột dữ liệu (LWW) | [`docs/D5_Mo_Dun_Dong_Bo_Va_Xu_Ly_Xung_Dot.md`](docs/D5_Mo_Dun_Dong_Bo_Va_Xu_Ly_Xung_Dot.md) | ✅ Hoàn thành |
-| **D6** | Bộ kiểm thử tự động và Kết quả kiểm thử (TC01 – TC09 PASS) | [`docs/D6_Bo_Kiem_Thu_Va_Ket_Qua.md`](docs/D6_Bo_Kiem_Thu_Va_Ket_Qua.md) & [`ExampleUnitTest.kt`](app/src/test/java/com/example/thanhhoa_offlinetask/ExampleUnitTest.kt) | ✅ Hoàn thành |
-| **D7** | Báo cáo thực nghiệm và Đánh giá hiệu năng (10, 50, 100 bản ghi) | [`docs/D7_Bao_Cao_Thuc_Nghiem_Va_Danh_Gia.md`](docs/D7_Bao_Cao_Thuc_Nghiem_Va_Danh_Gia.md) & [`backend/benchmark_sync.js`](backend/benchmark_sync.js) | ✅ Hoàn thành |
-| **D8** | Sản phẩm trình diễn (File APK) và Tài liệu sử dụng | [`docs/D8_San_Pham_Trinh_Dien_Va_Huong_Dan.md`](docs/D8_San_Pham_Trinh_Dien_Va_Huong_Dan.md) & [`app-debug.apk`](app/build/outputs/apk/debug/app-debug.apk) | ✅ Hoàn thành |
-
 ## 1. Giới thiệu
 
 **ThanhHoa Offline Task** là ứng dụng Android quản lý công việc cá nhân. Ứng dụng ưu tiên lưu dữ liệu trên thiết bị bằng Room để người dùng vẫn có thể thêm, xem, sửa, đánh dấu hoàn thành và xóa công việc khi không có Internet. Khi kết nối khả dụng, ứng dụng có thể đồng bộ với Backend thông qua REST API.
@@ -146,17 +132,23 @@ Kiểm tra trên máy tính:
 
 ### Cấu hình kết nối Backend
 
-Trong `data/remote/RetrofitClient.kt`:
+Trong `android/app/src/main/java/com/example/thanhhoa_offlinetask/data/remote/RetrofitClient.kt`, ứng dụng sử dụng cơ chế **Multi-Host Fallback Interceptor** để tự động dò tìm và chuyển đổi giữa các địa chỉ máy chủ khả dụng:
 
 ```kotlin
+private val CANDIDATE_HOSTS = listOf(
+    "10.0.2.2",
+    "192.168.1.148",
+    "127.0.0.1"
+)
+private const val PORT = 3000
 private const val BASE_URL = "http://10.0.2.2:3000/"
 ```
 
-- `10.0.2.2` là địa chỉ đặc biệt để **Android Emulator** truy cập `localhost` của máy tính đang chạy Backend.
-- Không dùng `localhost:3000` trong app chạy trên emulator vì `localhost` lúc này trỏ về chính emulator.
-- Khi chạy trên **điện thoại thật**, phải đổi thành IP LAN của máy chạy Backend (và bảo đảm thiết bị có thể truy cập IP đó).
-- Trong bản phát triển local, `AndroidManifest.xml` cần quyền `INTERNET` và cấu hình cho phép HTTP cleartext nếu dùng `http://`.
-- Với môi trường production, nên dùng **HTTPS** thay vì HTTP.
+- **`10.0.2.2`**: Địa chỉ mặc định để **Android Emulator** kết nối thẳng về `localhost` của máy tính đang chạy Backend.
+- **`192.168.1.148`**: Địa chỉ IP LAN (Wi-Fi) của máy tính để chạy trên **điện thoại thật** cùng mạng nội bộ (nếu máy tính của bạn có IP LAN khác, hãy cập nhật lại địa chỉ này trong `CANDIDATE_HOSTS`).
+- **`127.0.0.1`**: Địa chỉ loopback dùng khi kết nối điện thoại thật qua cáp USB kèm lệnh `adb reverse tcp:3000 tcp:3000`.
+- **Cơ chế tự động chuyển đổi (`multiHostFallbackInterceptor`)**: Khi gửi request, `OkHttpClient` (với `connectTimeout = 2s`) sẽ ưu tiên thử host thành công gần nhất (`preferredHost`), nếu lỗi kết nối sẽ tự động thử lần lượt các địa chỉ còn lại trong `CANDIDATE_HOSTS`.
+- Trong bản phát triển local, `AndroidManifest.xml` đã cấp quyền `INTERNET` và cấu hình cho phép HTTP cleartext (`usesCleartextTraffic="true"`). Với môi trường production, nên dùng **HTTPS** thay vì HTTP.
 
 ## 7. Mô hình dữ liệu Task
 
